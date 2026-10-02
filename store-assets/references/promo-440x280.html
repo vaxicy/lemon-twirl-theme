@@ -1,12 +1,15 @@
 <!doctype html><html><head><meta charset='utf-8'><style>
 * { margin:0; padding:0; box-sizing:border-box; }
+/* padding-top, not margin-top on the first child: a collapsed margin would shift
+   the whole canvas down and push the accent bar off the top edge */
 body { width:440px; height:280px; background:#FEFBB4; overflow:hidden;
         font-family:"Segoe UI", Arial, sans-serif; color:#392F1E;
-        display:flex; flex-direction:column; align-items:center; position:relative; }
+        display:flex; flex-direction:column; align-items:center; position:relative;
+        padding-top:30px; }
 .bar { position:absolute; left:0; bottom:0; width:440px; height:14px;
         background:#70941D; }
 .card { width:112px; height:112px; border-radius:26px; background:#FFFFFF;
-         margin-top:30px; display:flex; align-items:center; justify-content:center;
+         display:flex; align-items:center; justify-content:center;
          box-shadow:0 4px 12px rgba(0,0,0,.10); }
 .card img { width:88px; height:88px; }
 .name { font-family:Georgia, "Times New Roman", serif; font-size:33px; margin-top:16px; }

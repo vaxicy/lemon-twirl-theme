@@ -388,13 +388,16 @@ def html_promo_small(c):
     eyebrow = COPY["promo_eyebrow"]
     return f"""<!doctype html><html><head><meta charset='utf-8'><style>
 * {{ margin:0; padding:0; box-sizing:border-box; }}
+/* padding-top, not margin-top on the first child: a collapsed margin would shift
+   the whole canvas down and push the accent bar off the top edge */
 body {{ width:440px; height:280px; background:{c['frame']}; overflow:hidden;
         font-family:"Segoe UI", Arial, sans-serif; color:{c['ink']};
-        display:flex; flex-direction:column; align-items:center; position:relative; }}
+        display:flex; flex-direction:column; align-items:center; position:relative;
+        padding-top:30px; }}
 .bar {{ position:absolute; left:0; bottom:0; width:440px; height:14px;
         background:{c['link']}; }}
 .card {{ width:112px; height:112px; border-radius:26px; background:#FFFFFF;
-         margin-top:30px; display:flex; align-items:center; justify-content:center;
+         display:flex; align-items:center; justify-content:center;
          box-shadow:0 4px 12px rgba(0,0,0,.10); }}
 .card img {{ width:88px; height:88px; }}
 .name {{ font-family:Georgia, "Times New Roman", serif; font-size:33px; margin-top:16px; }}
@@ -414,12 +417,14 @@ def html_promo_marquee(c):
     eyebrow = COPY["promo_eyebrow"]
     return f"""<!doctype html><html><head><meta charset='utf-8'><style>
 {base_css(c)}
+/* padding-top instead of a margin on the title: the collapsed margin used to
+   push the canvas down 44px and leave the accent bar floating mid-canvas */
 body {{ width:1400px; height:560px; background:{c['ntp']}; overflow:hidden;
-        position:relative; text-align:center; }}
+        position:relative; text-align:center; padding-top:44px; }}
 .accent {{ position:absolute; top:0; left:0; width:1400px; height:8px;
            background:{c['link']}; }}
 .title {{ font-family:Georgia, "Times New Roman", serif; font-size:46px;
-          color:{c['ink']}; margin-top:44px; }}
+          color:{c['ink']}; }}
 .eyebrow {{ font-size:11.5px; letter-spacing:3px; color:{c['link']}; margin-top:10px;
             white-space:pre; }}
 .sub {{ font-size:17px; color:{c['bookmark']}; margin-top:12px; }}
@@ -439,19 +444,22 @@ body {{ width:1400px; height:560px; background:{c['ntp']}; overflow:hidden;
 
 # ---------------------------------------------------------------- rendering
 def render(page, html, out_png, w, h):
+    """out_png is project-relative: Playwright gets short ASCII-ish paths too."""
     page.set_viewport_size({"width": w, "height": h})
     page.set_content(html, wait_until="load")
     page.wait_for_timeout(120)
-    page.screenshot(path=out_png)
+    page.screenshot(path=os.path.relpath(out_png, ROOT))
     return out_png
 
 
 def to_rgb(src, dst, size):
-    img = Image.open(src).convert("RGB")
-    assert img.size == size, "%s is %s, expected %s" % (src, img.size, size)
-    img.save(dst)
-    print("wrote %s  %dx%d" % (os.path.relpath(dst, ROOT).replace("\\", "/"),
-                               img.size[0], img.size[1]))
+    """PIL gets project-relative paths: absolute paths with non-ASCII characters
+    make Image.save() fail intermittently with OSError 22 on Windows."""
+    rel_src, rel_dst = os.path.relpath(src, ROOT), os.path.relpath(dst, ROOT)
+    img = Image.open(rel_src).convert("RGB")
+    assert img.size == size, "%s is %s, expected %s" % (rel_src, img.size, size)
+    img.save(rel_dst)
+    print("wrote %s  %dx%d" % (rel_dst.replace("\\", "/"), img.size[0], img.size[1]))
 
 
 def scan_copy():
@@ -461,6 +469,7 @@ def scan_copy():
 
 
 def main():
+    os.chdir(ROOT)          # every write below is project-relative on purpose
     scan_copy()
     for d in (REF_DIR, SHOT_DIR, PROMO_DIR):
         os.makedirs(d, exist_ok=True)
