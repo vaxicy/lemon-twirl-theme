@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.zip
+dist/
+Cached Theme.pak
+.codebuddy/
+commit_msg.txt

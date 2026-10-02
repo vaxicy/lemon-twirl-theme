@@ -1,0 +1,168 @@
+{
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "name": "Lemon Twirl Theme",
+  "description": "Playful and vivacious, twist into fun.",
+  "icons": {
+    "128": "logo/logo.png"
+  },
+  "theme": {
+    "colors": {
+      "frame": [
+        254,
+        251,
+        180
+      ],
+      "frame_inactive": [
+        239,
+        239,
+        220
+      ],
+      "toolbar": [
+        246,
+        246,
+        241
+      ],
+      "background_tab": [
+        255,
+        238,
+        128
+      ],
+      "tab_text": [
+        57,
+        47,
+        30
+      ],
+      "tab_background_text": [
+        118,
+        114,
+        20
+      ],
+      "toolbar_button_icon": [
+        124,
+        122,
+        75
+      ],
+      "button_background": [
+        247,
+        234,
+        120
+      ],
+      "omnibox_background": [
+        254,
+        254,
+        254
+      ],
+      "omnibox_text": [
+        57,
+        56,
+        30
+      ],
+      "bookmark_text": [
+        120,
+        91,
+        28
+      ],
+      "ntp_background": [
+        250,
+        249,
+        247
+      ],
+      "ntp_text": [
+        52,
+        44,
+        15
+      ],
+      "ntp_link": [
+        112,
+        148,
+        29
+      ],
+      "frame_incognito": [
+        254,
+        249,
+        150
+      ],
+      "frame_incognito_inactive": [
+        233,
+        233,
+        206
+      ],
+      "background_tab_inactive": [
+        255,
+        238,
+        128
+      ],
+      "background_tab_incognito": [
+        255,
+        234,
+        97
+      ],
+      "background_tab_incognito_inactive": [
+        255,
+        238,
+        128
+      ],
+      "tab_background_text_inactive": [
+        118,
+        114,
+        20
+      ],
+      "tab_background_text_incognito": [
+        118,
+        114,
+        20
+      ],
+      "tab_background_text_incognito_inactive": [
+        118,
+        114,
+        20
+      ],
+      "ntp_header": [
+        52,
+        44,
+        15
+      ],
+      "toolbar_text": [
+        120,
+        91,
+        28
+      ]
+    },
+    "tints": {
+      "buttons": [
+        0.167,
+        0.217,
+        0.955
+      ],
+      "frame": [
+        0.16,
+        0.974,
+        0.851
+      ],
+      "frame_inactive": [
+        0.167,
+        0.373,
+        0.9
+      ],
+      "frame_incognito": [
+        0.159,
+        0.981,
+        0.792
+      ],
+      "frame_incognito_inactive": [
+        0.167,
+        0.38,
+        0.861
+      ],
+      "background_tab": [
+        0.144,
+        1,
+        0.751
+      ]
+    },
+    "properties": {
+      "ntp_logo_alternate": 1
+    }
+  }
+}
