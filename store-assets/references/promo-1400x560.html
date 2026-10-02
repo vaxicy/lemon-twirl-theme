@@ -4,55 +4,75 @@
 body { font-family:"Segoe UI", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
 .win { width:1280px; height:800px; overflow:hidden; background:#FAF9F7; }
 
-.tabstrip { height:42px; background:#FEFBB4; display:flex; align-items:flex-end;
-             padding:0 8px; gap:4px; }
-.tab { height:34px; display:flex; align-items:center; gap:8px; padding:0 12px;
-        border-radius:9px 9px 0 0; font-size:12.5px; color:#767214; }
-.tab.active { height:34px; width:232px; background:#F6F6F1; color:#392F1E;
-               border-radius:9px 9px 0 0; box-shadow:0 -1px 2px rgba(0,0,0,.05); }
+/* tab strip: frame shows as a narrow top edge, inactive tabs use background_tab */
+.tabstrip { position:relative; height:38px; background:#FEFBB4;
+             display:flex; align-items:flex-end; padding:0 132px 0 6px; gap:2px; }
+.caret { display:flex; align-items:center; padding:0 6px 9px; }
+.tab { height:33px; display:flex; align-items:center; gap:8px;
+        padding:0 12px; border-radius:9px 9px 0 0; font-size:13px;
+        color:#767214; background:#FFEE80; min-width:150px; }
+.tab.active { width:190px; background:#F6F6F1; color:#392F1E; }
 .tlabel { flex:1; overflow:hidden; white-space:nowrap; }
-.tfav { width:14px; height:14px; border-radius:4px; background:#F7EA78;
-         flex:0 0 auto; }
+.tfav { width:14px; height:14px; border-radius:4px; flex:0 0 auto; }
 .tclose { display:flex; }
 .newtab { display:flex; align-items:center; padding:0 10px 9px; }
+.wincontrols { position:absolute; right:8px; top:8px; display:flex; gap:12px;
+                align-items:center; }
 
-.toolbar { height:40px; background:#F6F6F1; display:flex; align-items:center;
-            padding:0 12px; gap:10px; }
-.navicons { display:flex; align-items:center; gap:6px; }
-.navicons.right { gap:12px; margin-left:auto; }
-.omnibox { flex:1; max-width:760px; height:30px; margin:0 auto; background:#FEFEFE;
-            border:1px solid rgba(0,0,0,.09); border-radius:15px; display:flex;
-            align-items:center; gap:9px; padding:0 12px; }
-.omni-text { flex:1; font-size:13px; color:#39381E; opacity:.82; }
-.avatar { width:22px; height:22px; border-radius:50%; background:#70941D;
-           opacity:.85; display:inline-block; }
+.toolbar { height:39px; background:#F6F6F1; display:flex;
+            align-items:center; padding:0 12px; gap:10px; }
+.navicons { display:flex; align-items:center; gap:8px; }
+.navicons.right { gap:13px; margin-left:auto; }
+.omnibox { flex:1; max-width:700px; height:31px; margin:0 auto; background:#FEFEFE;
+            border:1px solid rgba(120,140,175,.55); border-radius:16px; display:flex;
+            align-items:center; gap:10px; padding:0 12px; }
+.omni-fav { font:700 13px/1 Arial, sans-serif; color:#4285F4; }
+.omni-text { flex:1; font-size:13.5px; color:#39381E; opacity:.85; }
+.download { position:relative; display:flex; }
+.download i { position:absolute; right:-6px; bottom:-3px; font:700 9px/14px Arial;
+               font-style:normal; color:#FFFFFF; background:#D93025; border-radius:7px;
+               padding:0 4px; }
+.avatar { width:23px; height:23px; border-radius:50%; background:#7C4DFF; color:#FFFFFF;
+           font:600 12px/23px Arial; text-align:center; display:inline-block; }
 
-.bookmarkbar { height:34px; background:#F6F6F1; display:flex; align-items:center;
-                gap:22px; padding:0 14px; }
+.bookmarkbar { height:37px; background:#F6F6F1;
+                display:flex; align-items:center; gap:20px; padding:0 14px;
+                border-top:1px solid rgba(0,0,0,.07); }
+.bmfolder { display:flex; }
 .bm { display:flex; align-items:center; gap:7px; font-size:12px; color:#785B1C; }
 .bmi { width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,.10); }
 
-.ntp { position:relative; height:684px; background:#FAF9F7; display:flex;
-        align-items:center; justify-content:center; }
-.ntp-center { display:flex; flex-direction:column; align-items:center;
-               margin-top:-26px; }
+/* new tab page - element positions sampled from the real screenshot */
+.ntp { position:relative; height:686px; background:#FAF9F7; }
+.ntp-topright { position:absolute; right:21px; top:21px; display:flex; align-items:center;
+                 gap:14px; font-size:15px; color:#444746; }
 /* Chrome derives this single-colour wordmark from ntp_background; it is not a
-   theme-controlled value (chrome-theme-google-logo-color). */
-.glogo { font-family:Arial, Helvetica, sans-serif; font-size:74px; letter-spacing:-3.2px;
-          color:#BDB096; margin-bottom:30px; }
-.searchbox { width:566px; height:46px; background:#FFFFFF; border-radius:23px;
-              border:1px solid rgba(0,0,0,.10); box-shadow:0 1px 4px rgba(0,0,0,.06);
-              display:flex; align-items:center; gap:14px; padding:0 20px; }
-.sbicon { display:flex; }
-.sbtext { font-size:15px; color:#5F6368; }
-.shortcuts { display:flex; gap:26px; margin-top:44px; }
-.sc { width:48px; height:48px; border-radius:50%; background:#FFFFFF;
-       border:1px solid rgba(0,0,0,.07); display:flex; align-items:center;
-       justify-content:center; }
-.scc { display:flex; }
-.customize { position:absolute; right:24px; bottom:22px; height:32px; border-radius:16px;
+   theme-controlled value (chrome-theme-google-logo-color), sampled as
+   #C1B49B on a real install. */
+.glogo { position:absolute; left:0; right:0; top:151px;
+          transform:translateY(-50%); text-align:center; font-family:Arial, Helvetica,
+          sans-serif; font-size:82px;
+          letter-spacing:-5.2px; line-height:1; color:#C1B49B; }
+.searchbox { position:absolute; top:234px; left:50%;
+              transform:translateX(-50%); width:640px;
+              height:44px; border-radius:22px;
+              background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 62%,#EFEEED 100%);
+              box-shadow:0 1px 3px rgba(0,0,0,.10); display:flex; align-items:center;
+              gap:14px; padding:0 18px; }
+.sbicon, .sbicons { display:flex; }
+.sbicons { margin-left:auto; gap:16px; }
+.sbtext { font-size:16px; color:#6B6A66; }
+.shortcuts { position:absolute; top:310px; left:0; right:0;
+              display:flex; justify-content:center; }
+/* fixed slot width keeps the circle centres 94px apart, as on screen */
+.scwrap { width:94px; display:flex; flex-direction:column;
+           align-items:center; }
+.sc { width:56px; height:56px; border-radius:50%;
+       background:#D4CABA; display:flex; align-items:center; justify-content:center; }
+.sclab { margin-top:2px; font-size:13px; line-height:1.15; color:#6E6A5E; }
+.customize { position:absolute; right:12px; bottom:9px; height:31px; border-radius:16px;
               background:#202124; color:#FFFFFF; display:flex; align-items:center; gap:9px;
-              padding:0 15px 0 13px; font-size:12.5px; }
+              padding:0 15px 0 13px; font-size:13px; }
 
 body { width:1400px; height:560px; background:#FAF9F7; overflow:hidden;
         position:relative; text-align:center; }
@@ -76,39 +96,51 @@ body { width:1400px; height:560px; background:#FAF9F7; overflow:hidden;
 <div class="stage"><div class="inner">
 <div class="win">
   <div class="tabstrip">
+    <div class="caret"><svg viewBox="0 0 20 20" width="15" height="15" style="color:#767214"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></div>
     <div class="tab active">
-      <span class="tfav"></span><span class="tlabel">New Tab</span>
-      <span class="tclose"><svg viewBox="0 0 20 20" width="12" height="12" style="color:#767214;"><path d="m5 5 6 6m0-6-6 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
+      <span class="tfav" style="background:#FEFBB4"></span>
+      <span class="tlabel">New Tab</span>
+      <span class="tclose"><svg viewBox="0 0 20 20" width="12" height="12" style="color:#767214"><path d="m5 5 6 6m0-6-6 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
     </div>
-    <div class="tab"><span class="tfav"></span><span class="tlabel">Design Notes</span></div><div class="tab"><span class="tfav"></span><span class="tlabel">Recipes</span></div><div class="tab"><span class="tfav"></span><span class="tlabel">Travel</span></div>
-    <div class="newtab"><svg viewBox="0 0 20 20" width="14" height="14" style="color:#767214;"><path d="M8 4v8m-4-4h8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></div>
+    <div class="tab"><span class="tfav" style="background:#C7D2FE"></span><span class="tlabel">Design Notes</span></div><div class="tab"><span class="tfav" style="background:#F9A8A8"></span><span class="tlabel">Recipes</span></div><div class="tab"><span class="tfav" style="background:#A7D8F0"></span><span class="tlabel">Travel</span></div>
+    <div class="newtab"><svg viewBox="0 0 20 20" width="14" height="14" style="color:#767214"><path d="M8 4v8m-4-4h8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></div>
+    <div class="wincontrols">
+      <svg viewBox="0 0 20 20" width="15" height="15" style="color:#767214"><path d="M4 10h12" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><svg viewBox="0 0 20 20" width="15" height="15" style="color:#767214"><rect x="4.5" y="4.5" width="11" height="11" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+      <svg viewBox="0 0 20 20" width="15" height="15" style="color:#767214"><path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+    </div>
   </div>
   <div class="toolbar">
     <div class="navicons">
-      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B;"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B;"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B;"><path d="M12 5a7 7 0 1 1-6.6 4.6M12 2v4h4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="M12 5a7 7 0 1 1-6.6 4.6M12 2v4h4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="M4 10.4 10 5l6 5.4V16a1 1 0 0 1-1 1h-3v-4H8v4H5a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
     </div>
     <div class="omnibox">
-      <svg viewBox="0 0 20 20" width="14" height="14" style="color:#8A8574;"><rect x="5" y="10" width="9" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.2 10V8.2a2.3 2.3 0 0 1 4.6 0V10" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      <span class="omni-fav">G</span>
       <span class="omni-text">Search Google or type a URL</span>
-      <svg viewBox="0 0 20 20" width="17" height="17" style="color:#7C7A4B;"><path d="m10 3.6 2 4.1 4.5.65-3.25 3.17.77 4.48L10 14.55 6 16l.77-4.48L3.5 8.35l4.5-.65Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      <svg viewBox="0 0 20 20" width="17" height="17" style="color:#7C7A4B"><path d="m10 3.6 2 4.1 4.5.65-3.25 3.17.77 4.48L10 14.55 6 16l.77-4.48L3.5 8.35l4.5-.65Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
     </div>
     <div class="navicons right">
-      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B;"><path d="M8 4.5a1.5 1.5 0 0 1 3 0V6h2.5a1 1 0 0 1 1 1v2.5h1a1.5 1.5 0 0 1 0 3h-1V15a1 1 0 0 1-1 1H10v-1.5a1.5 1.5 0 0 0-3 0V16H4.5a1 1 0 0 1-1-1v-2.6h1a1.5 1.5 0 0 0 0-3h-1V7a1 1 0 0 1 1-1H8Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><rect x="3" y="5.5" width="14" height="10" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10.5" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="M8 4.5a1.5 1.5 0 0 1 3 0V6h2.5a1 1 0 0 1 1 1v2.5h1a1.5 1.5 0 0 1 0 3h-1V15a1 1 0 0 1-1 1H10v-1.5a1.5 1.5 0 0 0-3 0V16H4.5a1 1 0 0 1-1-1v-2.6h1a1.5 1.5 0 0 0 0-3h-1V7a1 1 0 0 1 1-1H8Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      <span class="download"><svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><i>3</i></span>
       <span class="avatar"></span>
-      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B;"><circle cx="6" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="14" cy="10" r="1.5"/></svg>
+      <svg viewBox="0 0 20 20" width="18" height="18" style="color:#7C7A4B"><circle cx="4.6" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="15.4" cy="10" r="1.5"/></svg>
     </div>
   </div>
-  <div class="bookmarkbar"><div class="bm"><span class="bmi" style="background:#F7EA78"></span>Design</div><div class="bm"><span class="bmi" style="background:#FFEE80"></span>Recipes</div><div class="bm"><span class="bmi" style="background:#FEFBB4"></span>Travel</div><div class="bm"><span class="bmi" style="background:#FEFEFE"></span>Reading</div></div>
+  <div class="bookmarkbar">
+    <span class="bmfolder"><svg viewBox="0 0 20 20" width="16" height="16" style="color:#785B1C"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h3l1.4 1.6h6.6A1.5 1.5 0 0 1 17 8.1v5.4A1.5 1.5 0 0 1 15.5 15h-11A1.5 1.5 0 0 1 3 13.5Z" fill="currentColor" opacity=".75"/></svg></span><div class="bm"><span class="bmi" style="background:#F7EA78"></span>Tools</div><div class="bm"><span class="bmi" style="background:#FFEE80"></span>AI</div><div class="bm"><span class="bmi" style="background:#FEFBB4"></span>UI</div><div class="bm"><span class="bmi" style="background:#FEFEFE"></span>G</div><div class="bm"><span class="bmi" style="background:#F7EA78"></span>Nav</div><div class="bm"><span class="bmi" style="background:#FFEE80"></span>Temp</div><div class="bm"><span class="bmi" style="background:#FEFBB4"></span>API</div><div class="bm"><span class="bmi" style="background:#FEFEFE"></span>Dev</div>
+  </div>
   <div class="ntp">
-    <div class="ntp-center">
-      <div class="glogo">Google</div>
-      <div class="searchbox">
-        <span class="sbicon"><svg viewBox="0 0 20 20" width="19" height="19" style="color:#5F6368;"><circle cx="9" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.8 12.8 4 4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span>
-        <span class="sbtext">Search Google or type a URL</span>
-      </div>
-      <div class="shortcuts"><div class="sc"><span class="scc"><svg viewBox="0 0 20 20" width="20" height="20" style="color:#5F6368;"><circle cx="10" cy="10" r="6.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.6 10h12.8M10 3.6c1.9 2 1.9 10.8 0 12.8-1.9-2-1.9-10.8 0-12.8Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div><div class="sc"><span class="scc"><svg viewBox="0 0 20 20" width="20" height="20" style="color:#5F6368;"><path d="M7.5 5.5 15 10l-7.5 4.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div><div class="sc"><span class="scc"><svg viewBox="0 0 20 20" width="20" height="20" style="color:#5F6368;"><path d="M10 17s5.2-5.1 5.2-8.4a5.2 5.2 0 1 0-10.4 0C4.8 11.9 10 17 10 17Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8.6" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div><div class="sc"><span class="scc"><svg viewBox="0 0 20 20" width="20" height="20" style="color:#5F6368;"><path d="M8 15V5.6l7-1.3V14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6.2" cy="15" r="1.9" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="13.2" cy="14" r="1.9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></div></div>
+    <div class="ntp-topright">
+      <span>Images</span><svg viewBox="0 0 20 20" width="19" height="19" style="color:#444746"><circle cx="5" cy="5" r="1.4"/><circle cx="10" cy="5" r="1.4"/><circle cx="15" cy="5" r="1.4"/><circle cx="5" cy="10" r="1.4"/><circle cx="10" cy="10" r="1.4"/><circle cx="15" cy="10" r="1.4"/><circle cx="5" cy="15" r="1.4"/><circle cx="10" cy="15" r="1.4"/><circle cx="15" cy="15" r="1.4"/></svg>
     </div>
-    <div class="customize"><svg viewBox="0 0 20 20" width="14" height="14" style="color:#FFFFFF;"><path d="m4.5 13.2-.7 2.9 2.9-.7 7-7a1.6 1.6 0 0 0-2.2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span>Customize Chrome</span></div>
+    <div class="glogo">Google</div>
+    <div class="searchbox">
+      <span class="sbicon"><svg viewBox="0 0 20 20" width="19" height="19" style="color:#6B6A66"><circle cx="9" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.8 12.8 4 4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span>
+      <span class="sbtext">Search Google or type a URL</span>
+      <span class="sbicons"><svg viewBox="0 0 20 20" width="21" height="21" style="color:#6B6A66"><rect x="7.6" y="3" width="4.8" height="9" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 9.4a5 5 0 0 0 10 0M10 14.6V17" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><svg viewBox="0 0 20 20" width="21" height="21" style="color:#6B6A66"><rect x="3" y="5.5" width="14" height="10" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10.5" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+    </div>
+    <div class="shortcuts"><div class="scwrap"><span class="scc"><span class="sc" style="background:#FF0000"><svg viewBox="0 0 20 20" width="30" height="30" style="color:#FFFFFF"><path d="M8 6.2 14 10l-6 3.8Z" fill="#FFFFFF"/></svg></span></span><span class="sclab">YouTube</span></div><div class="scwrap"><span class="scc"><span class="sc"><svg viewBox="0 0 20 20" width="26" height="26"><circle cx="10" cy="10" r="7" fill="#7CD5F0"/><path d="M10 6.6 12 12l4.6-1.6z" fill="#F6F6F1" opacity=".9"/></svg></span></span><span class="sclab">Web Store</span></div><div class="scwrap"><span class="scc"><span class="sc"><svg viewBox="0 0 20 20" width="26" height="26" style="color:#5F5B4C"><path d="M8 4v8m-4-4h8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span></span><span class="sclab">Add shortcut</span></div></div>
+    <div class="customize"><svg viewBox="0 0 20 20" width="14" height="14" style="color:#FFFFFF"><path d="m4.5 13.2-.7 2.9 2.9-.7 7-7a1.6 1.6 0 0 0-2.2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span>Customize Chrome</span></div>
   </div>
 </div></div></div>
 </body></html>

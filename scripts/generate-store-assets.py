@@ -7,10 +7,12 @@ Produces, from a single composer:
   store-assets/promo/440x280.png                         440x280   brand tile
   store-assets/promo/1400x560.png                        1400x560  marquee
 
-Every colour is read from manifest.json (single source of truth); the Google
-logo colour is the one Chrome derives for this ntp_background (see
-chrome-theme-google-logo-color rule). Intermediate HTML/PNG live in
-store-assets/references/.
+Colours come from manifest.json (single source of truth). The browser mockup
+geometry is calibrated against a real 1080x647 Chrome screenshot of this theme
+(2026-10-02), scaled by 1280/1080 and positioned by its ratio inside the NTP
+band - see NTP_METRICS. Includes: inactive tabs painted in background_tab, the
+Chrome-derived single-colour wordmark, the real search box size, tan shortcut
+circles, and the Customize Chrome pill.
 
 Run:  python3 scripts/generate-store-assets.py
 """
@@ -39,6 +41,28 @@ COPY = {
     "chips": ["Solid colors", "Playful & bright", "Lemon fresh"],
     "promo_sub": "A playful twist for your new tab.",
     "promo_eyebrow": "C H R O M E  T H E M E",
+    "search_placeholder": "Search Google or type a URL",
+}
+
+# ---------------------------------------------------------------- real-browser metrics
+# Sampled from the real 1080x647 screenshot; WINDOW scales them to the 1280 wide
+# asset, NTP bands are placed by their ratio inside the new-tab area.
+WINDOW = 1280 / 1080.0
+GOOGLE_LOGO_REAL = "#C1B49B"   # Chrome's computed wordmark colour, sampled
+NTP_METRICS = {
+    "tabstrip": 32 * WINDOW,        # 38
+    "toolbar": 33 * WINDOW,         # 39
+    "bookmarkbar": 31 * WINDOW,     # 37
+    "wordmark_ink_h": 76,           # ink height 64 * WINDOW
+    "wordmark_tracking": -5.2,      # calibrated so the ink width matches 229 px
+    "wordmark_center": 0.2292,      # ink centre offset / NTP height
+    "search_w": 640,                # 540 * WINDOW
+    "search_h": 44,                 # 37 * WINDOW
+    "search_top": 0.3406,
+    "circle_d": 56,                 # 47 * WINDOW
+    "circle_gap": 94,               # 79 * WINDOW
+    "circle_top": 0.4511,
+    "label_top": 0.5360,
 }
 
 # Chrome Store content-policy red lines - scanned before anything is written.
@@ -85,9 +109,12 @@ def _lin(v):
     return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
 
 
+def luminance(hx):
+    return sum(w * _lin(c) for w, c in zip((0.2126, 0.7152, 0.0722), _rgb(hx)))
+
+
 def contrast(a, b):
-    la = sum(w * _lin(c) for w, c in zip((0.2126, 0.7152, 0.0722), _rgb(a)))
-    lb = sum(w * _lin(c) for w, c in zip((0.2126, 0.7152, 0.0722), _rgb(b)))
+    la, lb = luminance(a), luminance(b)
     hi, lo = max(la, lb), min(la, lb)
     return (hi + 0.05) / (lo + 0.05)
 
@@ -96,13 +123,17 @@ def readable_on(bg, light="#FFFFFF", dark="#1B220C"):
     return light if contrast(bg, light) >= contrast(bg, dark) else dark
 
 
+def mix(a, b, t):
+    ra, rb = _rgb(a), _rgb(b)
+    return "#%02X%02X%02X" % tuple(round(ra[i] + (rb[i] - ra[i]) * t) for i in range(3))
+
+
 def google_logo_color(ntp_bg):
-    """Chrome keeps the hue/saturation of ntp_background and clamps lightness
-    to about 0.665 when ntp_logo_alternate is on, so a near-neutral pale NTP
-    yields a warm grey wordmark."""
+    """Fallback derivation when no real screenshot is available: Chrome keeps the
+    hue/saturation of ntp_background and clamps lightness to ~0.68."""
     r, g, b = (v / 255.0 for v in _rgb(ntp_bg))
     h, l, s = colorsys.rgb_to_hls(r, g, b)
-    r2, g2, b2 = colorsys.hls_to_rgb(h, min(l, 0.665), s)
+    r2, g2, b2 = colorsys.hls_to_rgb(h, min(l, 0.68), s)
     return "#%02X%02X%02X" % (round(r2 * 255), round(g2 * 255), round(b2 * 255))
 
 
@@ -111,137 +142,188 @@ ICON = {
     "back": '<path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.7"/>',
     "forward": '<path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.7"/>',
     "reload": '<path d="M12 5a7 7 0 1 1-6.6 4.6M12 2v4h4" fill="none" stroke="currentColor" stroke-width="1.7"/>',
-    "lock": '<rect x="5" y="10" width="9" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.2 10V8.2a2.3 2.3 0 0 1 4.6 0V10" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+    "home": '<path d="M4 10.4 10 5l6 5.4V16a1 1 0 0 1-1 1h-3v-4H8v4H5a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     "star": '<path d="m10 3.6 2 4.1 4.5.65-3.25 3.17.77 4.48L10 14.55 6 16l.77-4.48L3.5 8.35l4.5-.65Z" fill="none" stroke="currentColor" stroke-width="1.4"/>',
     "puzzle": '<path d="M8 4.5a1.5 1.5 0 0 1 3 0V6h2.5a1 1 0 0 1 1 1v2.5h1a1.5 1.5 0 0 1 0 3h-1V15a1 1 0 0 1-1 1H10v-1.5a1.5 1.5 0 0 0-3 0V16H4.5a1 1 0 0 1-1-1v-2.6h1a1.5 1.5 0 0 0 0-3h-1V7a1 1 0 0 1 1-1H8Z" fill="none" stroke="currentColor" stroke-width="1.4"/>',
-    "dots": '<circle cx="6" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="14" cy="10" r="1.5"/>',
+    "download": '<path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+    "dots": '<circle cx="4.6" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="15.4" cy="10" r="1.5"/>',
     "search": '<circle cx="9" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.8 12.8 4 4" fill="none" stroke="currentColor" stroke-width="1.7"/>',
-    "globe": '<circle cx="10" cy="10" r="6.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.6 10h12.8M10 3.6c1.9 2 1.9 10.8 0 12.8-1.9-2-1.9-10.8 0-12.8Z" fill="none" stroke="currentColor" stroke-width="1.5"/>',
-    "play": '<path d="M7.5 5.5 15 10l-7.5 4.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/>',
-    "pin": '<path d="M10 17s5.2-5.1 5.2-8.4a5.2 5.2 0 1 0-10.4 0C4.8 11.9 10 17 10 17Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8.6" r="1.7" fill="none" stroke="currentColor" stroke-width="1.5"/>',
-    "note": '<path d="M8 15V5.6l7-1.3V14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6.2" cy="15" r="1.9" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="13.2" cy="14" r="1.9" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    "mic": '<rect x="7.6" y="3" width="4.8" height="9" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 9.4a5 5 0 0 0 10 0M10 14.6V17" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    "camera": '<rect x="3" y="5.5" width="14" height="10" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10.5" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    "grid": '<circle cx="5" cy="5" r="1.4"/><circle cx="10" cy="5" r="1.4"/><circle cx="15" cy="5" r="1.4"/><circle cx="5" cy="10" r="1.4"/><circle cx="10" cy="10" r="1.4"/><circle cx="15" cy="10" r="1.4"/><circle cx="5" cy="15" r="1.4"/><circle cx="10" cy="15" r="1.4"/><circle cx="15" cy="15" r="1.4"/>',
     "close": '<path d="m5 5 6 6m0-6-6 6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     "plus": '<path d="M8 4v8m-4-4h8" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     "pencil": '<path d="m4.5 13.2-.7 2.9 2.9-.7 7-7a1.6 1.6 0 0 0-2.2-2.2Z" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+    "win_min": '<path d="M4 10h12" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+    "win_max": '<rect x="4.5" y="4.5" width="11" height="11" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+    "win_close": '<path d="m5 5 10 10m0-10L5 15" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+    "folder": '<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h3l1.4 1.6h6.6A1.5 1.5 0 0 1 17 8.1v5.4A1.5 1.5 0 0 1 15.5 15h-11A1.5 1.5 0 0 1 3 13.5Z" fill="currentColor" opacity=".75"/>',
+    "play_tri": '<path d="M8 6.2 14 10l-6 3.8Z" fill="#FFFFFF"/>',
 }
 
 
-def svg(key, size=16, color="currentColor", width=None):
-    return ('<svg viewBox="0 0 20 20" width="%d" height="%d" style="color:%s;%s">%s</svg>'
-            % (size, size, color, ("width:%dpx;height:%dpx;" % (width, width)) if width else "",
-               ICON[key]))
+def svg(key, size=16, color="currentColor"):
+    return ('<svg viewBox="0 0 20 20" width="%d" height="%d" style="color:%s">%s</svg>'
+            % (size, size, color, ICON[key]))
 
 
 # ---------------------------------------------------------------- browser mockup
 def browser_layer(c):
-    """Inner markup of the window mockup (1280x800) - reused by the marquee."""
-    bm = [("Design", c["button"]), ("Recipes", c["tab"]),
-          ("Travel", c["frame"]), ("Reading", c["omnibox"])]
+    """Inner markup of the 1280x800 window mockup - reused by the marquee."""
+    bm = [("Tools", c["button"]), ("AI", c["tab"]), ("UI", c["frame"]),
+          ("G", c["omnibox"]), ("Nav", c["button"]), ("Temp", c["tab"]),
+          ("API", c["frame"]), ("Dev", c["omnibox"])]
     bookmarks = "".join(
         '<div class="bm"><span class="bmi" style="background:%s"></span>%s</div>' % (col, name)
         for name, col in bm)
     tabs = "".join(
-        '<div class="tab"><span class="tfav"></span><span class="tlabel">%s</span></div>' % name
-        for name in ("Design Notes", "Recipes", "Travel"))
-    shortcuts = "".join(
-        '<div class="sc"><span class="scc">%s</span></div>'
-        % svg(k, 20, "#5F6368") for k in ("globe", "play", "pin", "note"))
+        '<div class="tab"><span class="tfav" style="background:%s"></span>'
+        '<span class="tlabel">%s</span></div>' % (col, name)
+        for name, col in (("Design Notes", "#C7D2FE"), ("Recipes", "#F9A8A8"),
+                          ("Travel", "#A7D8F0")))
+    shortcuts = [
+        ("YouTube", '<span class="sc" style="background:#FF0000">%s</span>'
+                    % svg("play_tri", 30, "#FFFFFF")),
+        ("Web Store",
+         '<span class="sc">%s</span>'
+         % '<svg viewBox="0 0 20 20" width="26" height="26">'
+           '<circle cx="10" cy="10" r="7" fill="#7CD5F0"/>'
+           '<path d="M10 6.6 12 12l4.6-1.6z" fill="#F6F6F1" opacity=".9"/></svg>'),
+        ("Add shortcut", '<span class="sc">%s</span>' % svg("plus", 26, "#5F5B4C")),
+    ]
+    shortcut_html = "".join(
+        '<div class="scwrap"><span class="scc">%s</span><span class="sclab">%s</span></div>'
+        % (art, label) for label, art in shortcuts)
 
     return f"""
 <div class="win">
   <div class="tabstrip">
+    <div class="caret">{svg('back', 15, c['tab_sub'])}</div>
     <div class="tab active">
-      <span class="tfav"></span><span class="tlabel">New Tab</span>
+      <span class="tfav" style="background:#FEFBB4"></span>
+      <span class="tlabel">New Tab</span>
       <span class="tclose">{svg('close', 12, c['tab_sub'])}</span>
     </div>
     {tabs}
     <div class="newtab">{svg('plus', 14, c['tab_sub'])}</div>
+    <div class="wincontrols">
+      {svg('win_min', 15, c['tab_sub'])}{svg('win_max', 15, c['tab_sub'])}
+      {svg('win_close', 15, c['tab_sub'])}
+    </div>
   </div>
   <div class="toolbar">
     <div class="navicons">
-      {svg('back', 18, c['icon'])}{svg('forward', 18, c['icon'])}{svg('reload', 18, c['icon'])}
+      {svg('back', 18, c['icon'])}{svg('forward', 18, c['icon'])}
+      {svg('reload', 18, c['icon'])}{svg('home', 18, c['icon'])}
     </div>
     <div class="omnibox">
-      {svg('lock', 14, '#8A8574')}
-      <span class="omni-text">Search Google or type a URL</span>
+      <span class="omni-fav">G</span>
+      <span class="omni-text">{COPY['search_placeholder']}</span>
       {svg('star', 17, c['icon'])}
     </div>
     <div class="navicons right">
-      {svg('puzzle', 18, c['icon'])}
+      {svg('camera', 18, c['icon'])}{svg('puzzle', 18, c['icon'])}
+      <span class="download">{svg('download', 18, c['icon'])}<i>3</i></span>
       <span class="avatar"></span>
       {svg('dots', 18, c['icon'])}
     </div>
   </div>
-  <div class="bookmarkbar">{bookmarks}</div>
+  <div class="bookmarkbar">
+    <span class="bmfolder">{svg('folder', 16, c['bookmark'])}</span>{bookmarks}
+  </div>
   <div class="ntp">
-    <div class="ntp-center">
-      <div class="glogo">Google</div>
-      <div class="searchbox">
-        <span class="sbicon">{svg('search', 19, '#5F6368')}</span>
-        <span class="sbtext">Search Google or type a URL</span>
-      </div>
-      <div class="shortcuts">{shortcuts}</div>
+    <div class="ntp-topright">
+      <span>Images</span>{svg('grid', 19, '#444746')}
     </div>
+    <div class="glogo">Google</div>
+    <div class="searchbox">
+      <span class="sbicon">{svg('search', 19, '#6B6A66')}</span>
+      <span class="sbtext">{COPY['search_placeholder']}</span>
+      <span class="sbicons">{svg('mic', 21, '#6B6A66')}{svg('camera', 21, '#6B6A66')}</span>
+    </div>
+    <div class="shortcuts">{shortcut_html}</div>
     <div class="customize">{svg('pencil', 14, '#FFFFFF')}<span>Customize Chrome</span></div>
   </div>
 </div>"""
 
 
 def base_css(c):
+    m = NTP_METRICS
+    ntp_h = 800 - (m["tabstrip"] + m["toolbar"] + m["bookmarkbar"])
     return f"""
 * {{ margin:0; padding:0; box-sizing:border-box; }}
 body {{ font-family:"Segoe UI", Arial, sans-serif; -webkit-font-smoothing:antialiased; }}
 .win {{ width:1280px; height:800px; overflow:hidden; background:{c['ntp']}; }}
 
-.tabstrip {{ height:42px; background:{c['frame']}; display:flex; align-items:flex-end;
-             padding:0 8px; gap:4px; }}
-.tab {{ height:34px; display:flex; align-items:center; gap:8px; padding:0 12px;
-        border-radius:9px 9px 0 0; font-size:12.5px; color:{c['tab_sub']}; }}
-.tab.active {{ height:34px; width:232px; background:{c['toolbar']}; color:{c['ink']};
-               border-radius:9px 9px 0 0; box-shadow:0 -1px 2px rgba(0,0,0,.05); }}
+/* tab strip: frame shows as a narrow top edge, inactive tabs use background_tab */
+.tabstrip {{ position:relative; height:{m['tabstrip']:.0f}px; background:{c['frame']};
+             display:flex; align-items:flex-end; padding:0 132px 0 6px; gap:2px; }}
+.caret {{ display:flex; align-items:center; padding:0 6px 9px; }}
+.tab {{ height:{m['tabstrip'] - 5:.0f}px; display:flex; align-items:center; gap:8px;
+        padding:0 12px; border-radius:9px 9px 0 0; font-size:13px;
+        color:{c['tab_sub']}; background:{c['tab']}; min-width:150px; }}
+.tab.active {{ width:190px; background:{c['toolbar']}; color:{c['ink']}; }}
 .tlabel {{ flex:1; overflow:hidden; white-space:nowrap; }}
-.tfav {{ width:14px; height:14px; border-radius:4px; background:{c['button']};
-         flex:0 0 auto; }}
+.tfav {{ width:14px; height:14px; border-radius:4px; flex:0 0 auto; }}
 .tclose {{ display:flex; }}
 .newtab {{ display:flex; align-items:center; padding:0 10px 9px; }}
+.wincontrols {{ position:absolute; right:8px; top:8px; display:flex; gap:12px;
+                align-items:center; }}
 
-.toolbar {{ height:40px; background:{c['toolbar']}; display:flex; align-items:center;
-            padding:0 12px; gap:10px; }}
-.navicons {{ display:flex; align-items:center; gap:6px; }}
-.navicons.right {{ gap:12px; margin-left:auto; }}
-.omnibox {{ flex:1; max-width:760px; height:30px; margin:0 auto; background:{c['omnibox']};
-            border:1px solid rgba(0,0,0,.09); border-radius:15px; display:flex;
-            align-items:center; gap:9px; padding:0 12px; }}
-.omni-text {{ flex:1; font-size:13px; color:{c['omnibox_text']}; opacity:.82; }}
-.avatar {{ width:22px; height:22px; border-radius:50%; background:{c['link']};
-           opacity:.85; display:inline-block; }}
+.toolbar {{ height:{m['toolbar']:.0f}px; background:{c['toolbar']}; display:flex;
+            align-items:center; padding:0 12px; gap:10px; }}
+.navicons {{ display:flex; align-items:center; gap:8px; }}
+.navicons.right {{ gap:13px; margin-left:auto; }}
+.omnibox {{ flex:1; max-width:700px; height:31px; margin:0 auto; background:{c['omnibox']};
+            border:1px solid rgba(120,140,175,.55); border-radius:16px; display:flex;
+            align-items:center; gap:10px; padding:0 12px; }}
+.omni-fav {{ font:700 13px/1 Arial, sans-serif; color:#4285F4; }}
+.omni-text {{ flex:1; font-size:13.5px; color:{c['omnibox_text']}; opacity:.85; }}
+.download {{ position:relative; display:flex; }}
+.download i {{ position:absolute; right:-6px; bottom:-3px; font:700 9px/14px Arial;
+               font-style:normal; color:#FFFFFF; background:#D93025; border-radius:7px;
+               padding:0 4px; }}
+.avatar {{ width:23px; height:23px; border-radius:50%; background:#7C4DFF; color:#FFFFFF;
+           font:600 12px/23px Arial; text-align:center; display:inline-block; }}
 
-.bookmarkbar {{ height:34px; background:{c['toolbar']}; display:flex; align-items:center;
-                gap:22px; padding:0 14px; }}
+.bookmarkbar {{ height:{m['bookmarkbar']:.0f}px; background:{c['toolbar']};
+                display:flex; align-items:center; gap:20px; padding:0 14px;
+                border-top:1px solid rgba(0,0,0,.07); }}
+.bmfolder {{ display:flex; }}
 .bm {{ display:flex; align-items:center; gap:7px; font-size:12px; color:{c['bookmark']}; }}
 .bmi {{ width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,.10); }}
 
-.ntp {{ position:relative; height:684px; background:{c['ntp']}; display:flex;
-        align-items:center; justify-content:center; }}
-.ntp-center {{ display:flex; flex-direction:column; align-items:center;
-               margin-top:-26px; }}
+/* new tab page - element positions sampled from the real screenshot */
+.ntp {{ position:relative; height:{ntp_h:.0f}px; background:{c['ntp']}; }}
+.ntp-topright {{ position:absolute; right:21px; top:21px; display:flex; align-items:center;
+                 gap:14px; font-size:15px; color:#444746; }}
 /* Chrome derives this single-colour wordmark from ntp_background; it is not a
-   theme-controlled value (chrome-theme-google-logo-color). */
-.glogo {{ font-family:Arial, Helvetica, sans-serif; font-size:74px; letter-spacing:-3.2px;
-          color:{google_logo_color(c['ntp'])}; margin-bottom:30px; }}
-.searchbox {{ width:566px; height:46px; background:#FFFFFF; border-radius:23px;
-              border:1px solid rgba(0,0,0,.10); box-shadow:0 1px 4px rgba(0,0,0,.06);
-              display:flex; align-items:center; gap:14px; padding:0 20px; }}
-.sbicon {{ display:flex; }}
-.sbtext {{ font-size:15px; color:#5F6368; }}
-.shortcuts {{ display:flex; gap:26px; margin-top:44px; }}
-.sc {{ width:48px; height:48px; border-radius:50%; background:#FFFFFF;
-       border:1px solid rgba(0,0,0,.07); display:flex; align-items:center;
-       justify-content:center; }}
-.scc {{ display:flex; }}
-.customize {{ position:absolute; right:24px; bottom:22px; height:32px; border-radius:16px;
+   theme-controlled value (chrome-theme-google-logo-color), sampled as
+   {GOOGLE_LOGO_REAL} on a real install. */
+.glogo {{ position:absolute; left:0; right:0; top:{m['wordmark_center'] * ntp_h - 6:.0f}px;
+          transform:translateY(-50%); text-align:center; font-family:Arial, Helvetica,
+          sans-serif; font-size:{m['wordmark_ink_h'] / 0.928:.0f}px;
+          letter-spacing:{m['wordmark_tracking']}px; line-height:1; color:{GOOGLE_LOGO_REAL}; }}
+.searchbox {{ position:absolute; top:{m['search_top'] * ntp_h:.0f}px; left:50%;
+              transform:translateX(-50%); width:{m['search_w']:.0f}px;
+              height:{m['search_h']:.0f}px; border-radius:{m['search_h'] / 2:.0f}px;
+              background:linear-gradient(180deg,#FFFFFF 0%,#FFFFFF 62%,#EFEEED 100%);
+              box-shadow:0 1px 3px rgba(0,0,0,.10); display:flex; align-items:center;
+              gap:14px; padding:0 18px; }}
+.sbicon, .sbicons {{ display:flex; }}
+.sbicons {{ margin-left:auto; gap:16px; }}
+.sbtext {{ font-size:16px; color:#6B6A66; }}
+.shortcuts {{ position:absolute; top:{m['circle_top'] * ntp_h:.0f}px; left:0; right:0;
+              display:flex; justify-content:center; }}
+/* fixed slot width keeps the circle centres {m['circle_gap']:.0f}px apart, as on screen */
+.scwrap {{ width:{m['circle_gap']:.0f}px; display:flex; flex-direction:column;
+           align-items:center; }}
+.sc {{ width:{m['circle_d']:.0f}px; height:{m['circle_d']:.0f}px; border-radius:50%;
+       background:#D4CABA; display:flex; align-items:center; justify-content:center; }}
+.sclab {{ margin-top:2px; font-size:13px; line-height:1.15; color:#6E6A5E; }}
+.customize {{ position:absolute; right:12px; bottom:9px; height:31px; border-radius:16px;
               background:#202124; color:#FFFFFF; display:flex; align-items:center; gap:9px;
-              padding:0 15px 0 13px; font-size:12.5px; }}
+              padding:0 15px 0 13px; font-size:13px; }}
 """
 
 
@@ -267,23 +349,28 @@ def html_intro(c):
                       f'<div class="chex" style="color:{tcol}">{col} &middot; {use}</div>'
                       f'</div>')
     chips = "".join('<span class="chip">%s</span>' % t for t in COPY["chips"])
+    # deeper canvas so no swatch can melt into the page (cream on off-white was
+    # invisible before); derived from the palette, not a second colour table
+    page_bg = mix(c["toolbar"], c["ink"], 0.17)
+    ink = c["ink"]
     return f"""<!doctype html><html><head><meta charset='utf-8'><style>
 * {{ margin:0; padding:0; box-sizing:border-box; }}
-body {{ width:1280px; height:800px; background:{c['ntp']};
-        font-family:"Segoe UI", Arial, sans-serif; color:{c['ntp_text']};
-        display:flex; flex-direction:column; align-items:center; padding-top:66px; }}
-.kicker {{ font-size:14px; letter-spacing:3px; color:{c['link']}; white-space:pre; }}
+body {{ width:1280px; height:800px; background:{page_bg};
+        font-family:"Segoe UI", Arial, sans-serif; color:{ink};
+        display:flex; flex-direction:column; align-items:center; padding-top:60px; }}
+.kicker {{ font-size:14px; letter-spacing:3px; color:{mix(c['link'], c['ink'], 0.60)};
+           white-space:pre; }}
 .title {{ font-family:Georgia, "Times New Roman", serif; font-size:58px;
-          margin-top:14px; color:{c['ink']}; }}
-.tagline {{ font-size:19px; margin-top:14px; color:{c['bookmark']}; }}
-.grid {{ display:grid; grid-template-columns:520px 520px; gap:30px; margin-top:44px; }}
+          margin-top:14px; color:#241E10; }}
+.tagline {{ font-size:19px; margin-top:14px; color:{mix(c['ink'], '#FFFFFF', 0.16)}; }}
+.grid {{ display:grid; grid-template-columns:520px 520px; gap:30px; margin-top:42px; }}
 .card {{ height:186px; border-radius:16px; padding:26px 30px;
-         box-shadow:0 2px 8px rgba(0,0,0,.06); display:flex; flex-direction:column;
-         justify-content:center; gap:10px; }}
+         box-shadow:0 4px 14px rgba(43,35,17,.22); border:1px solid rgba(43,35,17,.10);
+         display:flex; flex-direction:column; justify-content:center; gap:10px; }}
 .cname {{ font-size:25px; font-weight:600; }}
 .chex {{ font-size:14px; opacity:.78; }}
-.chips {{ display:flex; gap:14px; margin-top:38px; }}
-.chip {{ background:{c['button']}; color:{c['ink']}; font-size:13.5px;
+.chips {{ display:flex; gap:14px; margin-top:34px; }}
+.chip {{ background:{c['frame']}; color:{ink}; font-size:13.5px;
          padding:9px 18px; border-radius:16px; }}
 </style></head><body>
 <div class="kicker">{COPY['kicker']}</div>
@@ -378,6 +465,8 @@ def main():
     for d in (REF_DIR, SHOT_DIR, PROMO_DIR):
         os.makedirs(d, exist_ok=True)
     c = load_colors()
+    print("Google wordmark: %s (sampled) / %s (formula)"
+          % (GOOGLE_LOGO_REAL, google_logo_color(c["ntp"])))
 
     pages = [
         ("screenshot-1-browser", html_browser(c), (1280, 800), SHOT_DIR),
